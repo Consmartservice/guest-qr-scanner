@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guest QR Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      padding: 20px;
+      background: #f2f4f7;
+    }
+    h2 { color: #126b45; }
+    #reader {
+      width: 100%;
+      max-width: 450px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <h2>GUEST QR SCANNER</h2>
+  <p>Elekeza kamera kwenye QR Code ya mgeni.</p>
+  <div id="reader"></div>
+  <p id="ujumbe">Inatafuta kamera...</p>
+
+  <script>
+    const scanner = new Html5Qrcode("reader");
+
+    function onScanSuccess(decodedText) {
+      document.getElementById("ujumbe").textContent =
+        "QR Code imesomwa. Inathibitisha mgeni...";
+
+      scanner.stop().then(function() {
+        window.location.href = decodedText;
+      });
+    }
+
+    Html5Qrcode.getCameras().then(function(cameras) {
+      if (!cameras || cameras.length === 0) {
+        throw new Error("Hakuna kamera iliyopatikana.");
+      }
+
+      const camera = cameras.find(c =>
+        /back|environment|rear/i.test(c.label)
+      ) || cameras[0];
+
+      return scanner.start(
+        camera.id,
+        { fps: 10, qrbox: 250 },
+        onScanSuccess
+      );
+    }).catch(function(error) {
+      document.getElementById("ujumbe").textContent =
+        "HITILAFU: " + error;
+    });
+  </script>
+</body>
+</html>
