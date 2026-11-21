@@ -2,12 +2,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Guest QR Scanner</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     body {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
       background: #f2f4f7;
@@ -18,6 +19,7 @@
       max-width: 450px;
       margin: auto;
     }
+    #ujumbe { font-weight: bold; }
   </style>
 </head>
 <body>
@@ -28,13 +30,26 @@
 
   <script>
     const scanner = new Html5Qrcode("reader");
+    let imesomwa = false;
 
     function onScanSuccess(decodedText) {
+      if (imesomwa) return;
+      imesomwa = true;
+
       document.getElementById("ujumbe").textContent =
         "QR Code imesomwa. Inathibitisha mgeni...";
 
       scanner.stop().then(function() {
-        window.location.href = decodedText;
+        if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec\?/.test(decodedText)) {
+          document.getElementById("ujumbe").textContent =
+            "HITILAFU: QR Code hii si kiungo sahihi cha mfumo.";
+          return;
+        }
+
+        window.location.replace(decodedText);
+      }).catch(function(error) {
+        document.getElementById("ujumbe").textContent =
+          "HITILAFU: " + error;
       });
     }
 
@@ -43,12 +58,8 @@
         throw new Error("Hakuna kamera iliyopatikana.");
       }
 
-      const camera = cameras.find(c =>
-        /back|environment|rear/i.test(c.label)
-      ) || cameras[0];
-
       return scanner.start(
-        camera.id,
+        cameras[0].id,
         { fps: 10, qrbox: 250 },
         onScanSuccess
       );
